@@ -1,0 +1,20 @@
+# Distribution    #
+###################
+dist/*
+MANIFEST
+
+# Data            #
+###################
+data/*
+futhark/data/*
+*.gz
+
+# Compiled source #
+###################
+*.c
+*.h
+futhark/*.py
+futhark/backprojection
+futhark/SIRT
+futhark/forwardprojection
+futhark/poc
