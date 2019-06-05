@@ -106,7 +106,7 @@ def process_data(workQueue, outdir, size, threadID, resQueue, offset, device, pr
 
         reshaped = result.reshape((size,size))
         plt.imsave(outdir + str(slice) + ".png", reshaped, cmap='Greys_r')
-        print("device %s has finished slice %s" %(str(device), str(slice)) )
+        # print("device %s has finished slice %s" %(str(device), str(slice)) )
         postLock.release()
 
 def pipeline(indir, outdir, size, dim=2, numDev=1):
