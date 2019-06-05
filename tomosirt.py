@@ -23,15 +23,7 @@ exitFlag = 0
 queueLock = threading.Lock()
 workQueue = queue.Queue(maxqlen)
 
-# preLock = threading.Lock()
 transLock = threading.Lock()
-# execLock = threading.Lock()
-# postLock = threading.Lock()
-#
-# preLock2 = threading.Lock()
-# transLock2 = threading.Lock()
-# execLock2 = threading.Lock()
-# postLock2 = threading.Lock()
 
 def data_generator2D(f):
     content = dataread3d_lib.clean_str(f.readline())
@@ -60,11 +52,9 @@ class myThread (threading.Thread):
         self.postLock = postLock
         # self.transLock = transLock
     def run(self):
-        process_data(self.workQueue, self.outdir, self.size, self.threadID, self.resQueue, self.offset, self.device, self.preLock, self.execLock , self.postLock)
-        # process_data(self.workQueue, self.outdir, self.size, self.threadID, self.resQueue, self.offset, self.device, self.preLock, self.execLock , self.postLock, self.transLock)
+        pipeline(self.workQueue, self.outdir, self.size, self.threadID, self.resQueue, self.offset, self.device, self.preLock, self.execLock , self.postLock)
 
-def process_data(workQueue, outdir, size, threadID, resQueue, offset, device, preLock, execLock, postLock):
-# def process_data(workQueue, outdir, size, threadID, resQueue, offset, device, preLock, execLock, postLock, transLock):
+def pipeline(workQueue, outdir, size, threadID, resQueue, offset, device, preLock, execLock, postLock):
     dev = cl.get_platforms()[0].get_devices(device_type=cl.device_type.GPU)
     ctx = cl.Context([dev[device]])
     queue = cl.CommandQueue(ctx)
@@ -109,13 +99,16 @@ def process_data(workQueue, outdir, size, threadID, resQueue, offset, device, pr
         # print("device %s has finished slice %s" %(str(device), str(slice)) )
         postLock.release()
 
-def pipeline(indir, outdir, size, dim=2, numDev=1):
+def pipeline_init(indir, outdir, size, dim=2, numDev=1, sparseName=None):
     start = time.time()
     global exitFlag
     o = os.path.join(outdir, "sirtinputf32rad" + str(size) + "-slice-")
 
     if dim == 2:
-        f = open(os.path.join(indir, "sirtinputf32rad" + str(size)))
+        if sparseName is None:
+            f = open(os.path.join(indir, "sirtinputf32rad" + str(size)))
+        else:
+            f = open(os.path.join(indir, sparseName))
         angles, rhozero, deltarho, initialimg, sino, iterations = data_generator2D(f)
         f.close()
     elif dim == 3:
@@ -125,15 +118,11 @@ def pipeline(indir, outdir, size, dim=2, numDev=1):
     threads = []
     for devNum in range(numDev):
         preLock = threading.Lock()
-        transLock = threading.Lock()
         execLock = threading.Lock()
         postLock = threading.Lock()
         thread0 = myThread(workQueue, o, size, preLock, execLock, postLock, threadID=0, device=devNum)
         thread1 = myThread(workQueue, o, size, preLock, execLock, postLock, threadID=1, device=devNum)
         thread2 = myThread(workQueue, o, size, preLock, execLock, postLock, threadID=2, device=devNum)
-        # thread0 = myThread(workQueue, o, size, preLock, execLock, postLock, transLock, threadID=0, device=devNum)
-        # thread1 = myThread(workQueue, o, size, preLock, execLock, postLock, transLock, threadID=1, device=devNum)
-        # thread2 = myThread(workQueue, o, size, preLock, execLock, postLock, transLock, threadID=2, device=devNum)
         thread0.start()
         thread1.start()
         thread2.start()
@@ -195,15 +184,12 @@ def singlet(indir, outdir, size, dim=2):
         theta_gpu = pycl_array.to_device(queue, angles.copy())
         img_gpu = pycl_array.to_device(queue, initialimg.copy())
         sinogram_gpu = pycl_array.to_device(queue, sino.copy())
-        queue.finish()
         cl.enqueue_barrier(queue).wait()
 
         res = sirt.main(theta_gpu, rhozero, deltarho, img_gpu, sinogram_gpu, iterations)
-        queue.finish()
         cl.enqueue_barrier(queue).wait()
 
         result = res.get(queue=queue)
-        queue.finish()
         cl.enqueue_barrier(queue).wait()
         reshaped = result.reshape((size,size))
         plt.imsave(o + str(slice) + ".png", reshaped, cmap='Greys_r')
@@ -212,6 +198,40 @@ def singlet(indir, outdir, size, dim=2):
 
     print("- runtime:\t{}".format(end-start))
     return end-start
+
+def transferTimings(indir, iters, sizes):
+    dev = cl.get_platforms()[0].get_devices(device_type=cl.device_type.GPU)
+    ctx = cl.Context([dev[0]])
+    queue = cl.CommandQueue(ctx)
+    sirt = SIRT.SIRT(command_queue=queue)
+
+    for size in sizes:
+        f = open(os.path.join(indir, "sirtinputf32rad" + str(size)))
+        angles, rhozero, deltarho, initialimg, sino, iterations = data_generator2D(f)
+        f.close()
+        for slice in range(iters):
+            if slice == iters-1:
+                print("transfer timings for size:", size)
+            startTra = time.time()
+            theta_gpu = pycl_array.to_device(queue, angles.copy())
+            img_gpu = pycl_array.to_device(queue, initialimg.copy())
+            sinogram_gpu = pycl_array.to_device(queue, sino.copy())
+            cl.enqueue_barrier(queue).wait()
+            if slice == iters-1:
+                print("transfer to device:", (time.time()-startTra))
+
+            startExe = time.time()
+            res = sirt.main(theta_gpu, rhozero, deltarho, img_gpu, sinogram_gpu, iterations)
+            cl.enqueue_barrier(queue).wait()
+            if slice == iters-1:
+                print("execute on device:", (time.time()-startExe))
+
+            startRes = time.time()
+            result = res.get(queue=queue)
+            cl.enqueue_barrier(queue).wait()
+            if slice == iters-1:
+                print("transfer from device:", (time.time()-startRes))
+
 
 def main(argv):
     parser = argparse.ArgumentParser(description="SIRT recontruction using data streaming to Futhark, benchmarking and proof of correctness and overlapping")
@@ -226,6 +246,8 @@ def main(argv):
     parser.add_argument('-c', '--compare', help="compare multithreaded to single threaded", action='store_true')
     parser.add_argument('-nm', '--nomulti', help="singlethreaded reconstruction", action='store_true')
     parser.add_argument('-p', '--prin', help="used for printing", action='store_true')
+    parser.add_argument('-t', '--transferTimings', help="time transfers and execution", action='store_true')
+    parser.add_argument('-sp', '--sparse', help="reconstruction with sparse angles", action='store_true')
 
     args, unknown = parser.parse_known_args(argv)
     indir = os.path.expanduser(args.inputdirectory)
@@ -262,7 +284,7 @@ def main(argv):
                 except:
                     pass
                 print("\nsize %s began at %s" % (size, time.ctime()))
-                pt = pipeline(indir, outdir, size, numDev=dev)
+                pt = pipeline_init(indir, outdir, size, numDev=dev)
                 if not filedir is None:
                     ft.write("size %s runtime:\t%s\n" % (size, pt))
 
@@ -278,7 +300,7 @@ def main(argv):
                 except:
                     pass
                 print("\nbegan at %s" % (time.ctime()))
-                pt = pipeline(infile, outdir, size, numDev=dev, dim=3)
+                pt = pipeline_init(infile, outdir, size, numDev=dev, dim=3)
 
 
     if args.compare:
@@ -301,7 +323,7 @@ def main(argv):
             except:
                 pass
             print("\nmultithreaded size %s began at %s" % (size, time.ctime()))
-            pt = pipeline(indir, outdir, size, numDev=dev)
+            pt = pipeline_init(indir, outdir, size, numDev=dev)
             print("\nsinglethreaded size %s began at %s" % (size, time.ctime()))
             st = singlet(indir, outdir2, size)
             print("\nSpeedup = %s" % (st/pt))
@@ -320,7 +342,16 @@ def main(argv):
             print("\nsinglethreaded size %s began at %s" % (size, time.ctime()))
             singlet(indir, outdir, size)
 
+    if args.transferTimings:
+        sizes = [256, 512, 1024, 2048, 4096]
+        transferTimings(indir, 3, sizes)
 
+    if args.sparse:
+        sparseList = ['sirtinputf32rad1', 'sirtinputf32rad5', 'sirtinputf32rad10', 'sirtinputf32rad15', 'sirtinputf32rad20', 'sirtinputf32rad25', 'sirtinputf32rad30', 'sirtinputf32rad35', 'sirtinputf32rad40', 'sirtinputf32rad45', 'sirtinputf32rad50', 'sirtinputf32rad55', 'sirtinputf32rad60', 'sirtinputf32rad65', 'sirtinputf32rad70', 'sirtinputf32rad75', 'sirtinputf32rad80', 'sirtinputf32rad85', 'sirtinputf32rad90', 'sirtinputf32rad95']
+
+        for s in sparseList:
+            print("\nfile %s began at %s" % (s, time.ctime()))
+            pipeline_init(indir, od, 1024, numDev=dev, sparseName=s)
 
 if __name__ == '__main__':
     main(sys.argv)
