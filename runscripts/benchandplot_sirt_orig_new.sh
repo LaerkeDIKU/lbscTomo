@@ -1,6 +1,6 @@
 #!/bin/bash
 now=$(date +%Y%m%d_%H%M%S)
-outputpath=output/gpu04/$now
+outputpath=~/synkrotomo/output/lbsc/astravsfut/gpu04/$now
 ### make output directory and sparse folder -p is also parents.
 mkdir -p $outputpath
 cd ..
