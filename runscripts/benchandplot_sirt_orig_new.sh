@@ -7,12 +7,12 @@ cd ~/samples/1_Utilities/deviceQuery
 ./deviceQuery >  $outputpath/deviceInfo.out
 echo "benchmark with all angles for different sizes"
 cd ../
-futhark opencl /backprojection.fut
-futhark bench --runs=10 --skip-compilation /tmp/crj/SIRT.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_brached.csv
+futhark opencl futhark/originalVersion/SIRT.fut
+futhark bench --runs=1 --skip-compilation futhark/originalVersion/SIRT.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_SIRT_orig.csv
 # futhark opencl ~/synkrotomo/futhark/forwardprojection.fut
 # futhark bench --runs=10 --skip-compilation /tmp/crj/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp.csv
-futhark opencl /tmp/crj/backprojection.fut
-futhark bench --runs=10 --skip-compilation /tmp/crj/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_SIRT_moderate.csv
+futhark opencl futhark/SIRT.fut
+futhark bench --runs=1 --skip-compilation futhark/SIRT.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_SIRT_new.csv
 # futhark opencl /tmp/crj/forwardprojection.fut
 # futhark bench --runs=10 --skip-compilation /tmp/crj/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp.csv
 ### Do benchmarks on sparse
