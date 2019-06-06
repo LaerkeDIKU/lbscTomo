@@ -9,26 +9,13 @@
 #SBATCH --time=01:00:00
 
 #your script, in this case: write the hostname and the ids of the chosen gpus.
-jobs="benchmarks started"
-cd ~/tomography/runscripts
-# bash slackpost.sh https://hooks.slack.com/services/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 $jobs
-hostname
-echo $CUDA_VISIBLE_DEVICES
-source activate tomography
-#make data
-echo "generate data"
-# python ~/tomography/data_input.py "~/synkrotomo/futhark/data"
-# python ~/tomography/data_input_sparse.py "~/synkrotomo/futhark/data/sparse"
 #use now as directory name so somewhat unique and we have a timestamp
 now=$(date +%Y%m%d_%H%M%S)
 outputpath=~/synkrotomo/output/lbsc/astravsfut/gpu04/$now
 ### make output directory and sparse folder -p is also parents.
 mkdir -p $outputpath
-cd ~/samples/1_Utilities/deviceQuery
-./deviceQuery >  $outputpath/deviceInfo.out
-### Do benchmarks with many angles
 echo "benchmark with all angles for different sizes"
-
+ cd ..
 
 futhark opencl futhark/originalVersion/forwardprojection.fut
 futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_div.csv
@@ -42,16 +29,9 @@ futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojec
 
 echo "plot runtimes gpu04 divergence"
 python lbscplot.py -d $outputpath -t "bp and fp, Divergence and no Divergence GPU04" -x "Pixels"
-# echo "plot runtimes sparse angles"
-# python plot.py -d $outputpath/sparse -t "Comparison of runtimes" -x "angles"
-# echo "plot speedup bp sparse"
-# python plot_speedup_same_graf.py -d $outputpath/sparse -t "Speedup sparse angles" -x "angles" -y "speedup"
 echo "plot speedup gpu04 bp divergence"
 python lbsc_plot_speedup_same_graf_branch.py -d $outputpath -t "Speedup backprojection, Divergence and no Divergence GPU04" -x "N" -y "speedup"
 cd ~/synkrotomo
 git add $outputpath/*
 git commit -m "Results of test for automatic plot script" $outputpath/*
 git push
-jobs="benchmarks ending"
-cd ~/tomography/runscripts
-# bash slackpost.sh https://hooks.slack.com/services/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 $jobs

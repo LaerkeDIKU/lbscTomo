@@ -9,9 +9,6 @@
 #SBATCH --time=01:00:00
 
 #your script, in this case: write the hostname and the ids of the chosen gpus.
-jobs="benchmarks started"
-cd ~/tomography/runscripts
-# bash slackpost.sh https://hooks.slack.com/services/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 $jobs
 hostname
 echo $CUDA_VISIBLE_DEVICES
 source activate tomography
@@ -24,11 +21,8 @@ now=$(date +%Y%m%d_%H%M%S)
 outputpath=~/synkrotomo/output/lbsc/astravsfut/gpu04/$now
 ### make output directory and sparse folder -p is also parents.
 mkdir -p $outputpath
-cd ~/samples/1_Utilities/deviceQuery
-./deviceQuery >  $outputpath/deviceInfo.out
-### Do benchmarks with many angles
 echo "benchmark with all angles for different sizes"
-
+cd ..
 
 futhark opencl futhark/noDivergence/forwardprojection.fut
 futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_nospa.csv
@@ -52,5 +46,3 @@ cd ~/synkrotomo
 git add $outputpath/*
 git commit -m "Results of test for automatic plot script" $outputpath/*
 git push
-jobs="benchmarks ending"
-# bash slackpost.sh https://hooks.slack.com/services/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 $jobs
