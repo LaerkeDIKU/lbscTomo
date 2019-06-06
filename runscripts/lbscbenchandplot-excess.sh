@@ -17,8 +17,8 @@ mkdir -p $outputpath
 echo "benchmark with all angles for different sizes"
  cd ..
 
-futhark bench --runs=10 --skip-compilation futhark/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_excess.csv
-futhark bench --runs=10 --backend=opencl futhark/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp.csv
+futhark bench --runs=5 --skip-compilation futhark/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_excess.csv
+futhark bench --runs=5 --backend=opencl futhark/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp.csv
 
 
 echo "plot runtimes gpu04 divergence"
