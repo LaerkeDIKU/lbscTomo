@@ -25,7 +25,7 @@ echo "benchmark with all angles for different sizes"
 cd ..
 
 futhark bench --runs=10 --backend=opencl futhark/noDivergence/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_nospa.csv
-futhark bench --runs=10 --backend=opencl futhark/noDivergence/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_nospa.csv
+futhark bench --runs=10 --backend=opencl futhark/noDivergence/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_nospa.csv
 futhark bench --runs=10 --backend=opencl futhark/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_spa.csv
 futhark bench --runs=10 --backend=opencl futhark/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_spa.csv
 
