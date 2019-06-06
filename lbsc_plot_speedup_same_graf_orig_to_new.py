@@ -11,9 +11,9 @@ import pandas as pd
 def plot(directory,title,xlabel,ylabel):
     root = os.path.expanduser(directory)
     # fut_fp_x, fut_fp_y = np.loadtxt(os.path.join(root,"fut_fp.csv"), skiprows=0, delimiter=';', unpack=True)
-    fut_bp_x, fut_bp_y = np.loadtxt(os.path.join(root,"fut_SIRT_moderate.csv"), skiprows=0, delimiter=';', unpack=True)
+    fut_bp_x, fut_bp_y = np.loadtxt(os.path.join(root,"fut_SIRT_new.csv"), skiprows=0, delimiter=';', unpack=True)
     # astra_fp_x, astra_fp_y = np.loadtxt(os.path.join(root,"astra_fp.csv"), skiprows=0, delimiter=';', unpack=True)
-    astra_bp_x, astra_bp_y = np.loadtxt(os.path.join(root,"fut_SIRT_incre.csv"), skiprows=0, delimiter=';', unpack=True)
+    astra_bp_x, astra_bp_y = np.loadtxt(os.path.join(root,"fut_SIRT_orig.csv"), skiprows=0, delimiter=';', unpack=True)
 
     frames = []
 
