@@ -31,7 +31,7 @@ python lbscplot.py -d $outputpath -t "Comparison of runtimes gpu04, SIRT," -x "P
 # echo "plot speedup bp sparse"
 # python plot_speedup_same_graf.py -d $outputpath/sparse -t "Speedup sparse angles" -x "angles" -y "speedup"
 echo "plot speedup bp"
-python lbscplot_speedup_same_graf.py -d $outputpath -t "Speedup full angles gpu03, SIRT, moderate and incremental" -x "N" -y "speedup"
+python lbsc_plot_speedup_same_graf_orig_to_new.py -d $outputpath -t "Speedup gpu04, SIRT, new and original" -x "N" -y "speedup"
 cd ~/synkrotomo
 git add $outputpath/*
 git commit -m "Results of test for automatic plot script" $outputpath/*
