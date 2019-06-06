@@ -22,6 +22,7 @@ let main  [p][a](angles : [a]f32)
           (deltarho : f32)
           (size : i32)
           (projections: [p]f32): []f32 =
+          let r = p/a
           let rhosprpixel = t32(f32.ceil(f32.sqrt(2)/deltarho))
           let halfsize = size/2
           let lines = preprocess angles
