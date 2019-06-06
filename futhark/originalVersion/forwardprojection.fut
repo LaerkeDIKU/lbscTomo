@@ -16,9 +16,12 @@
 import "projection_lib"
 open Projection
 
-let main  [n](angles : []f32)
-          (rhos : []f32)
-          (image : *[n]f32): []f32 =
+let main  [n][a] (angles : *[a]f32)
+          (rhozero : f32)
+          (deltarho : f32)
+          (numrhos : i32)
+          (image : *[n]f32) =
+          let rhos = map (\i -> rhozero+ r32(i)*numrhos) iota numrhos
           let size = t32(f32.sqrt(r32(n)))
           let halfsize = size/2
           in forward_projection angles rhos halfsize image
