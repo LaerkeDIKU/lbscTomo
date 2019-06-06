@@ -10,11 +10,9 @@
 
 #your script, in this case: write the hostname and the ids of the chosen gpus.
 jobs="benchmarks started"
-cd ~/tomography/runscripts
 # bash slackpost.sh https://hooks.slack.com/services/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 $jobs
 hostname
 echo $CUDA_VISIBLE_DEVICES
-source activate tomography
 #make data
 echo "generate data"
 # python ~/tomography/data_input.py "~/synkrotomo/futhark/data"
@@ -26,7 +24,6 @@ outputpath=~/synkrotomo/output/lbsc/astravsfut/gpu04/$now
 mkdir -p $outputpath
 cd ~/samples/1_Utilities/deviceQuery
 ./deviceQuery >  $outputpath/deviceInfo.out
-cd ~/tomography/runscripts
 ### Do benchmarks with many angles
 echo "benchmark with all angles for different sizes"
 # python ~/tomography/bench_astra_fp.py -d ~/synkrotomo/futhark/data -i "fp" | tee $outputpath/astra_fp.csv
@@ -49,7 +46,6 @@ futhark bench --runs=10 --skip-compilation /tmp/crj/divergence/backprojection.fu
 # futhark bench --runs=10 --skip-compilation ~/synkrotomo/futhark/backprojection_sparse.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/sparse/fut_bp.csv
 # # futhark opencl ~/synkrotomo/futhark/forwardprojection_sparse.fut
 # futhark bench --runs=10 --skip-compilation ~/synkrotomo/futhark/forwardprojection_sparse.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/sparse/fut_fp.csv
-cd ~/tomography
 echo "plot runtimes gpu04 bp divergence"
 python lbscplot.py -d $outputpath -t "backprojection, Divergence and no Divergence GPU04" -x "Pixels"
 # echo "plot runtimes sparse angles"
@@ -63,5 +59,4 @@ git add $outputpath/*
 git commit -m "Results of test for automatic plot script" $outputpath/*
 git push
 jobs="benchmarks ending"
-cd ~/tomography/runscripts
 # bash slackpost.sh https://hooks.slack.com/services/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 $jobs

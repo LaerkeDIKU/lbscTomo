@@ -26,44 +26,31 @@ outputpath=~/synkrotomo/output/lbsc/astravsfut/gpu04/$now
 mkdir -p $outputpath
 cd ~/samples/1_Utilities/deviceQuery
 ./deviceQuery >  $outputpath/deviceInfo.out
-cd ~/tomography/runscripts
 ### Do benchmarks with many angles
 echo "benchmark with all angles for different sizes"
-# python ~/tomography/bench_astra_fp.py -d ~/synkrotomo/futhark/data -i "fp" | tee $outputpath/astra_fp.csv
-# python ~/tomography/bench_astra_bp.py -d ~/synkrotomo/futhark/data -i "bp" | tee $outputpath/astra_bp.csv
 
 
-# futhark opencl /tmp/crj/archive/synkrotomo-25dec/futhark/backprojection.fut
-# futhark bench --runs=10 --skip-compilation /tmp/crj/archive/synkrotomo-25dec/futhark/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_b.csv
-# futhark opencl ~/synkrotomo/futhark/forwardprojection.fut
-# futhark bench --runs=10 --skip-compilation /tmp/crj/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp.csv
-futhark opencl /tmp/crj/divergence/backprojection.fut
-futhark bench --runs=10 --skip-compilation /tmp/crj/divergence/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_ndiv.csv
-futhark opencl /tmp/crj/backprojection.fut
-futhark bench --runs=10 --skip-compilation /tmp/crj/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_spa.csv
-# futhark opencl /tmp/crj/forwardprojection.fut
-# futhark bench --runs=10 --skip-compilation /tmp/crj/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp.csv
-### Do benchmarks on sparse
-# echo "benchmark with sparse angles for size 1024"
-# python ~/tomography/bench_astra_fp.py -d ~/synkrotomo/futhark/data/sparse -i "fpsparse" -x 1| tee $outputpath/sparse/astra_fp.csv
-# python ~/tomography/bench_astra_bp.py -d ~/synkrotomo/futhark/data/sparse -i "bpsparse" -x 1| tee $outputpath/sparse/astra_bp.csv
-# # futhark opencl ~/synkrotomo/futhark/backprojection_sparse.fut
-# futhark bench --runs=10 --skip-compilation ~/synkrotomo/futhark/backprojection_sparse.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/sparse/fut_bp.csv
-# # futhark opencl ~/synkrotomo/futhark/forwardprojection_sparse.fut
-# futhark bench --runs=10 --skip-compilation ~/synkrotomo/futhark/forwardprojection_sparse.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/sparse/fut_fp.csv
-cd ~/tomography
-echo "plot runtimes gpu04 bp divergence"
-python lbscplot.py -d $outputpath -t "backprojection, Spatial optim compare GPU04" -x "Pixels"
+futhark opencl futhark/noDivergence/forwardprojection.fut
+futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_nospa.csv
+futhark opencl futhark/noDivergence/backprojection.fut
+futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_nospa.csv
+futhark opencl futhark/forwardprojection.fut
+futhark bench --runs=10 --skip-compilation futhark/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_spa.csv
+futhark opencl futhark/backprojection.fut
+futhark bench --runs=10 --skip-compilation futhark/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_spa.csv
+
+
+echo "plot runtimes gpu04 divergence"
+python lbscplot.py -d $outputpath -t "bp and fp, spatial optims GPU04" -x "Pixels"
 # echo "plot runtimes sparse angles"
 # python plot.py -d $outputpath/sparse -t "Comparison of runtimes" -x "angles"
 # echo "plot speedup bp sparse"
 # python plot_speedup_same_graf.py -d $outputpath/sparse -t "Speedup sparse angles" -x "angles" -y "speedup"
 echo "plot speedup gpu04 bp divergence"
-python lbsc_plot_speedup_same_graf_spatial.py -d $outputpath -t "Speedup backprojection, Spatial optim compare GPU04" -x "N" -y "speedup"
+python lbsc_plot_speedup_same_graf_branch.py -d $outputpath -t "Speedup bp and fp spatial GPU04" -x "N" -y "speedup"
 cd ~/synkrotomo
 git add $outputpath/*
 git commit -m "Results of test for automatic plot script" $outputpath/*
 git push
 jobs="benchmarks ending"
-cd ~/tomography/runscripts
 # bash slackpost.sh https://hooks.slack.com/services/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 $jobs

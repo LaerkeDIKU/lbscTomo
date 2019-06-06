@@ -1,39 +1,53 @@
 #!/bin/bash
+# normal cpu stuff: allocate cpus, memory
+#SBATCH --ntasks=1 --cpus-per-task=1 --mem=8000M
+#SBATCH --job-name=Benchmark
+# we run on the gpu partition and we allocate 2 titanx gpus
+#SBATCH -p gpu --gres=gpu:titanx:1
+#We expect that our program should not run langer than 30 min
+#Note that a program will be killed once it exceeds this time!
+#SBATCH --time=01:00:00
+
+#your script, in this case: write the hostname and the ids of the chosen gpus.
+jobs="benchmarks started"
+cd ~/tomography/runscripts
+# bash slackpost.sh https://hooks.slack.com/services/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 $jobs
+hostname
+echo $CUDA_VISIBLE_DEVICES
+source activate tomography
+#make data
+echo "generate data"
+# python ~/tomography/data_input.py "~/synkrotomo/futhark/data"
+# python ~/tomography/data_input_sparse.py "~/synkrotomo/futhark/data/sparse"
+#use now as directory name so somewhat unique and we have a timestamp
 now=$(date +%Y%m%d_%H%M%S)
-outputpath=output/gpu04/$now
+outputpath=~/synkrotomo/output/lbsc/astravsfut/gpu04/$now
 ### make output directory and sparse folder -p is also parents.
 mkdir -p $outputpath
 cd ~/samples/1_Utilities/deviceQuery
 ./deviceQuery >  $outputpath/deviceInfo.out
+### Do benchmarks with many angles
 echo "benchmark with all angles for different sizes"
-cd ../
-futhark opencl futhark/originalVersion/backprojection.fut
-futhark bench --runs=10 --skip-compilation /tmp/crj/SIRT.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_brached.csv
+
+
 futhark opencl futhark/originalVersion/forwardprojection.fut
-futhark bench --runs=10 --skip-compilation /tmp/crj/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_branched.csv
-futhark opencl futhark/noDivergence/backprojection.fut
-futhark bench --runs=10 --skip-compilation /tmp/crj/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_branched.csv
+futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_div.csv
+futhark opencl futhark/originalVersion/backprojection.fut
+futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_div.csv
 futhark opencl futhark/noDivergence/forwardprojection.fut
-futhark bench --runs=10 --skip-compilation futhark/noDivergence/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp.csv
-# futhark opencl /tmp/crj/forwardprojection.fut
-# futhark bench --runs=10 --skip-compilation /tmp/crj/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp.csv
-### Do benchmarks on sparse
-# echo "benchmark with sparse angles for size 1024"
-# python ~/tomography/bench_astra_fp.py -d ~/synkrotomo/futhark/data/sparse -i "fpsparse" -x 1| tee $outputpath/sparse/astra_fp.csv
-# python ~/tomography/bench_astra_bp.py -d ~/synkrotomo/futhark/data/sparse -i "bpsparse" -x 1| tee $outputpath/sparse/astra_bp.csv
-# # futhark opencl ~/synkrotomo/futhark/backprojection_sparse.fut
-# futhark bench --runs=10 --skip-compilation ~/synkrotomo/futhark/backprojection_sparse.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/sparse/fut_bp.csv
-# # futhark opencl ~/synkrotomo/futhark/forwardprojection_sparse.fut
-# futhark bench --runs=10 --skip-compilation ~/synkrotomo/futhark/forwardprojection_sparse.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/sparse/fut_fp.csv
-cd ~/tomography
-echo "plot runtimes many angles"
-python lbscplot.py -d $outputpath -t "Comparison of runtimes gpu04, SIRT," -x "Pixels"
+futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_nodiv.csv
+futhark opencl futhark/noDivergence/backprojection.fut
+futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_nodiv.csv
+
+
+echo "plot runtimes gpu04 divergence"
+python lbscplot.py -d $outputpath -t "bp and fp, Divergence and no Divergence GPU04" -x "Pixels"
 # echo "plot runtimes sparse angles"
 # python plot.py -d $outputpath/sparse -t "Comparison of runtimes" -x "angles"
 # echo "plot speedup bp sparse"
 # python plot_speedup_same_graf.py -d $outputpath/sparse -t "Speedup sparse angles" -x "angles" -y "speedup"
-echo "plot speedup bp"
-python lbscplot_speedup_same_graf.py -d $outputpath -t "Speedup full angles gpu03, SIRT, moderate and incremental" -x "N" -y "speedup"
+echo "plot speedup gpu04 bp divergence"
+python lbsc_plot_speedup_same_graf_branch.py -d $outputpath -t "Speedup backprojection, Divergence and no Divergence GPU04" -x "N" -y "speedup"
 cd ~/synkrotomo
 git add $outputpath/*
 git commit -m "Results of test for automatic plot script" $outputpath/*
