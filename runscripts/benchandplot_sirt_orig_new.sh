@@ -5,7 +5,7 @@ outputpath=~/synkrotomo/output/lbsc/astravsfut/gpu04/$now
 mkdir -p $outputpath
 cd ..
 futhark bench --runs=1 --backend=opencl futhark/originalVersion/SIRT.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_SIRT_orig.csv
-futhark bench --runs=1 --backend=opencl futhark/SIRT.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_SIRT_py.csv
+futhark bench --runs=1 --backend=opencl futhark/SIRT.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_SIRT_new.csv
 echo "plot runtimes many angles"
 python lbscplot.py -d $outputpath -t "Comparison of runtimes gpu04, SIRT," -x "Pixels"
 echo "plot speedup bp"
