@@ -37,7 +37,7 @@ python lbscplot.py -d $outputpath -t "bp and fp, spatial optims GPU04" -x "Pixel
 # echo "plot speedup bp sparse"
 # python plot_speedup_same_graf.py -d $outputpath/sparse -t "Speedup sparse angles" -x "angles" -y "speedup"
 echo "plot speedup gpu04 bp divergence"
-python lbsc_plot_speedup_same_graf_branch.py -d $outputpath -t "Speedup bp and fp spatial GPU04" -x "N" -y "speedup"
+python lbsc_plot_speedup_same_graf_spatial.py -d $outputpath -t "Speedup bp and fp spatial GPU04" -x "N" -y "speedup"
 cd ~/synkrotomo
 git add $outputpath/*
 git commit -m "Results of test for automatic plot script" $outputpath/*
