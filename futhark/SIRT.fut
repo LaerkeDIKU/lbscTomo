@@ -7,8 +7,6 @@
 -- input@../data/sirtinputf32rad1500
 -- input@../data/sirtinputf32rad2000
 -- input@../data/sirtinputf32rad2048
-
-
 -- input@../data/sirtinputf32rad2500
 -- input@../data/sirtinputf32rad3000
 -- input@../data/sirtinputf32rad3500
