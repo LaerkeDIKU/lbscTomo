@@ -21,7 +21,7 @@ let main  [n][a] (angles : *[a]f32)
           (deltarho : f32)
           (numrhos : i32)
           (image : *[n]f32) =
-          let rhos = map (\i -> rhozero+ r32(i)*numrhos) iota numrhos
+          let rhos = map (\i -> rhozero+ r32(i)*deltarho) iota numrhos
           let size = t32(f32.sqrt(r32(n)))
           let halfsize = size/2
           in forward_projection angles rhos halfsize image
