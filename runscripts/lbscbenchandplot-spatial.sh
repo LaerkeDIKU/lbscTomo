@@ -24,14 +24,10 @@ mkdir -p $outputpath
 echo "benchmark with all angles for different sizes"
 cd ..
 
-futhark opencl futhark/noDivergence/forwardprojection.fut
-futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_nospa.csv
-futhark opencl futhark/noDivergence/backprojection.fut
-futhark bench --runs=10 --skip-compilation futhark/originalVersion/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_nospa.csv
-futhark opencl futhark/forwardprojection.fut
-futhark bench --runs=10 --skip-compilation futhark/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_spa.csv
-futhark opencl futhark/backprojection.fut
-futhark bench --runs=10 --skip-compilation futhark/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_spa.csv
+futhark bench --runs=10 --backend=opencl futhark/noDivergence/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_nospa.csv
+futhark bench --runs=10 --backend=opencl futhark/noDivergence/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_nospa.csv
+futhark bench --runs=10 --backend=opencl futhark/forwardprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_fp_spa.csv
+futhark bench --runs=10 --backend=opencl futhark/backprojection.fut | bash ~/tomography/runscripts/formatfuthark.sh $outputpath/fut_bp_spa.csv
 
 
 echo "plot runtimes gpu04 divergence"
