@@ -32,7 +32,7 @@ def plot(directory,title,xlabel,ylabel):
     plt.plot(dataframe['speedup_fp'], color='orange')
     plt.plot(dataframe['speedup_bp'], color='darkcyan')
     plt.axhline(y=1, color="red")
-    plt.legend(["No_div_fp", "No_div_bp", "original"])
+    plt.legend(["spatial_optim_fp", "spatial_optim_bp", "original"])
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

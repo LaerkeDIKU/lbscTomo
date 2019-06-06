@@ -26,7 +26,7 @@ futhark bench --runs=10 --backend=opencl futhark/noDivergence/backprojection.fut
 echo "plot runtimes gpu04 divergence"
 python lbscplot.py -d $outputpath -t "bp and fp, Divergence and no Divergence GPU04" -x "Pixels"
 echo "plot speedup gpu04 bp divergence"
-python lbsc_plot_speedup_same_graf_branch.py -d $outputpath -t "Speedup backprojection, Divergence and no Divergence GPU04" -x "N" -y "speedup"
+python lbsc_plot_speedup_same_graf_divergence.py -d $outputpath -t "Speedup backprojection, Divergence and no Divergence GPU04" -x "N" -y "speedup"
 cd ~/synkrotomo
 git add $outputpath/*
 git commit -m "Results of test for automatic plot script" $outputpath/*
